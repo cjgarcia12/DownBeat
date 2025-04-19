@@ -3,6 +3,7 @@ import SwiftData
 
 struct FormPresetsView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     @Query private var presets: [FormPreset]
     @Binding var selectedPreset: FormPreset?
     @State private var showingAddPreset = false
@@ -10,18 +11,20 @@ struct FormPresetsView: View {
     var onPresetSelected: (FormPreset) -> Void
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section(header: Text("Standard Forms")) {
                     Button("12-Bar Blues") {
                         let preset = FormPreset.twelveBarBlues()
                         onPresetSelected(preset)
                     }
+                    .foregroundColor(.primary)
                     
                     Button("32-Bar AABA") {
                         let preset = FormPreset.thirtyTwoBarForm()
                         onPresetSelected(preset)
                     }
+                    .foregroundColor(.primary)
                 }
                 
                 Section(header: Text("Custom Presets")) {
@@ -29,14 +32,17 @@ struct FormPresetsView: View {
                         Text("No custom presets yet")
                             .foregroundColor(.gray)
                             .italic()
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .listRowBackground(Color.clear)
                     } else {
                         ForEach(presets) { preset in
                             Button(action: { onPresetSelected(preset) }) {
-                                VStack(alignment: .leading) {
+                                VStack(alignment: .leading, spacing: 4) {
                                     Text(preset.name)
                                         .font(.headline)
+                                        .foregroundColor(.primary)
                                     
-                                    HStack {
+                                    HStack(spacing: 5) {
                                         Text("\(preset.bpm) BPM")
                                         Text("•")
                                         Text(preset.timeSignature.description)
@@ -47,6 +53,7 @@ struct FormPresetsView: View {
                                     .foregroundColor(.gray)
                                 }
                             }
+                            .padding(.vertical, 4)
                             .swipeActions {
                                 Button(role: .destructive) {
                                     deletePreset(preset)
@@ -59,6 +66,7 @@ struct FormPresetsView: View {
                 }
             }
             .navigationTitle("Form Presets")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingAddPreset = true }) {
@@ -68,8 +76,7 @@ struct FormPresetsView: View {
                 
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Done") {
-                        // Close the sheet
-                        // This relies on the isPresented binding in the parent view
+                        dismiss()
                     }
                 }
             }
@@ -100,7 +107,7 @@ struct AddPresetView: View {
     @State private var sections: [PhraseSection] = [PhraseSection(name: "A", barCount: 8)]
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section(header: Text("Basic Info")) {
                     TextField("Preset Name", text: $name)
@@ -114,13 +121,19 @@ struct AddPresetView: View {
                                 Text("\(beat)")
                             }
                         }
+                        .pickerStyle(.menu)
+                        .frame(width: 60)
+                        
                         Text("/")
+                        
                         Picker("Note Value", selection: $noteValue) {
                             Text("2").tag(2)
                             Text("4").tag(4)
                             Text("8").tag(8)
                             Text("16").tag(16)
                         }
+                        .pickerStyle(.menu)
+                        .frame(width: 60)
                     }
                 }
                 
@@ -131,6 +144,9 @@ struct AddPresetView: View {
                                 get: { sections[index].name },
                                 set: { sections[index].name = $0 }
                             ))
+                            .frame(width: 80)
+                            
+                            Spacer()
                             
                             Stepper("Bars: \(sections[index].barCount)", value: Binding(
                                 get: { sections[index].barCount },
@@ -148,9 +164,12 @@ struct AddPresetView: View {
                             sections.append(newSection)
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .foregroundColor(.blue)
                 }
             }
             .navigationTitle("Add Preset")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
@@ -163,6 +182,7 @@ struct AddPresetView: View {
                         savePreset()
                     }
                     .disabled(name.isEmpty || sections.isEmpty)
+                    .fontWeight(.bold)
                 }
             }
         }

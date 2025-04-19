@@ -13,11 +13,41 @@ final class MetronomeSettings {
     var currentBeat: Int = 1
     var currentBar: Int = 1
     
+    // Mute settings
+    var mutedBeats: [Int] = [] // Beats that should be muted (1-based index)
+    var mutedBars: [Int] = [] // Bars that should be muted (1-based index)
+    var countOffEnabled: Bool = true
+    
     init(bpm: Int = 120, timeSignature: TimeSignature = TimeSignature(beats: 4, noteValue: 4), phraseLength: Int = 4, isPlaying: Bool = false) {
         self.bpm = bpm
         self.timeSignature = timeSignature
         self.phraseLength = phraseLength
         self.isPlaying = isPlaying
+    }
+    
+    // Helper functions for muting
+    func toggleMuteBeat(_ beat: Int) {
+        if mutedBeats.contains(beat) {
+            mutedBeats.removeAll { $0 == beat }
+        } else {
+            mutedBeats.append(beat)
+        }
+    }
+    
+    func toggleMuteBar(_ bar: Int) {
+        if mutedBars.contains(bar) {
+            mutedBars.removeAll { $0 == bar }
+        } else {
+            mutedBars.append(bar)
+        }
+    }
+    
+    func isBeatMuted(_ beat: Int) -> Bool {
+        return mutedBeats.contains(beat)
+    }
+    
+    func isBarMuted(_ bar: Int) -> Bool {
+        return mutedBars.contains(bar)
     }
 }
 
